@@ -1,0 +1,124 @@
+{% extends 'kmeans_app/base.html' %}
+
+{% block title %}Visualizaciones - Dataset{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-chart-bar"></i> Visualizaciones del Dataset
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <h5><i class="fas fa-info-circle"></i> Información</h5>
+                    <p class="mb-0">
+                        Estas visualizaciones muestran la distribución de los datos analizados, para demostrar el funcionamiento del algoritmo KMeans.
+                    </p>
+                </div>
+                
+                <!-- Distribución de Clases -->
+                <div class="plot-container mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-chart-pie"></i> Distribución de Transacciones Normales vs Fraudulentas
+                    </h4>
+                    {% if class_distribution %}
+                    <img src="data:image/png;base64,{{ class_distribution }}" 
+                         alt="Distribución de Clases" 
+                         class="plot-img img-fluid">
+                    <div class="text-center mt-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <span class="badge bg-primary p-2">
+                                    <i class="fas fa-check-circle"></i> 
+                                    Transacciones Normales: Mayoría del dataset
+                                </span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="badge bg-danger p-2">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    Transacciones Fraudulentas: Solo ~0.17%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        No hay datos disponibles. Por favor, genera datos primero.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Distribución de Montos -->
+                <div class="plot-container mb-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-money-bill-wave"></i> Distribución de Montos de Transacción
+                    </h4>
+                    {% if amount_distribution %}
+                    <img src="data:image/png;base64,{{ amount_distribution }}" 
+                         alt="Distribución de Montos" 
+                         class="plot-img img-fluid">
+                    <div class="text-center mt-2 text-muted">
+                        <small>
+                            Los montos siguen una distribución exponencial, típica en transacciones financieras
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        No hay datos disponibles. Por favor, genera datos primero.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Información Adicional -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Análisis de las Visualizaciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-exclamation-triangle text-danger"></i> Desafío del Dataset Desbalanceado</h6>
+                                <p>
+                                    El desbalance extremo entre clases ({{ num_samples }} muestras totales) 
+                                    presenta un desafío significativo para los algoritmos de detección de fraudes.
+                                </p>
+                                <ul>
+                                    <li>Ratio normal/fraude: ~{{ num_normal }}:{{ num_fraud }}</li>
+                                    <li>Necesidad de técnicas especiales (oversampling, undersampling)</li>
+                                    <li>Métricas apropiadas (F1-score, AUC-ROC)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-lightbulb text-warning"></i> Importancia del Preprocesamiento</h6>
+                                <p>
+                                    Para el algoritmo KMeans, es crucial:
+                                </p>
+                                <ul>
+                                    <li>Estandarización de características</li>
+                                    <li>Reducción dimensional (PCA)</li>
+                                    <li>Selección adecuada de k (método del codo)</li>
+                                    <li>Tratamiento de outliers</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-success mt-3">
+                            <h6><i class="fas fa-rocket"></i> Próximo Paso: Análisis KMeans</h6>
+                            <p class="mb-0">
+                                Ahora que has visto la distribución de los datos, puedes proceder con 
+                                el análisis de clustering usando KMeans. 
+                                <a href="{% url 'kmeans_analysis' %}" class="alert-link">
+                                    Haz clic aquí para ir al análisis KMeans
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

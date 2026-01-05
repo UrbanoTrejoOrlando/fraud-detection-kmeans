@@ -1,0 +1,1 @@
+web: gunicorn fraud_detection.wsgi

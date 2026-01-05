@@ -1,0 +1,143 @@
+{% extends 'kmeans_app/base.html' %}
+
+{% block title %}Inicio - Detección de Fraudes{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-shield-alt"></i> Sistema de Detección de Transacciones Fraudulentas
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4 class="text-primary">Caso Práctico: Algoritmo KMeans</h4>
+                        <p class="lead">
+                            Este sistema utiliza aprendizaje no supervisado (KMeans) para identificar 
+                            patrones anómalos en transacciones bancarias.
+                        </p>
+                        
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle"></i> Características del Proyecto:</h5>
+                            <ul>
+                                <li>Dataset de transacciones bancarias</li>
+                                <li>Análisis exploratorio de datos</li>
+                                <li>Visualizaciones interactivas</li>
+                                <li>Clustering con algoritmo KMeans</li>
+                                <li>Evaluación de resultados</li>
+                                <li>Interfaz web desarrollada con Django</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{% url 'dataset_info' %}" class="btn btn-primary btn-lg me-2">
+                                <i class="fas fa-database"></i> Ver Dataset
+                            </a>
+                            <a href="{% url 'kmeans_analysis' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-play"></i> Ejecutar KMeans
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <i class="fas fa-credit-card fa-3x mb-3"></i>
+                            <h3>Transacciones Simuladas</h3>
+                            <div class="stat-number">5,000</div>
+                            <p>Registros generados automáticamente</p>
+                        </div>
+                        
+                        <div class="stat-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <h3>Fraudes Detectados</h3>
+                            <div class="stat-number">~0.17%</div>
+                            <p>Tasa de fraudes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                        <h5>Análisis Estadístico</h5>
+                        <p>Exploración completa del dataset con estadísticas descriptivas</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-pie fa-3x text-success mb-3"></i>
+                        <h5>Visualizaciones</h5>
+                        <p>Gráficos interactivos para entender la distribución de datos</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-project-diagram fa-3x text-warning mb-3"></i>
+                        <h5>Clustering KMeans</h5>
+                        <p>Agrupamiento no supervisado para detección de anomalías</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cogs"></i> Cómo Funciona</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="step-circle">1</div>
+                        <h6>Generar Datos</h6>
+                        <small>Simulación de transacciones normales y fraudulentas</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-circle">2</div>
+                        <h6>Preprocesar</h6>
+                        <small>Estandarización y reducción dimensional (PCA)</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-circle">3</div>
+                        <h6>Aplicar KMeans</h6>
+                        <small>Agrupamiento en clusters</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-circle">4</div>
+                        <h6>Evaluar</h6>
+                        <small>Análisis de resultados y métricas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-circle {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto 10px;
+}
+</style>
+{% endblock %}
