@@ -83,8 +83,3 @@ coverage.xml
 .env
 .venv
 
-# Static files
-staticfiles/
-
-# Render
-render.yaml

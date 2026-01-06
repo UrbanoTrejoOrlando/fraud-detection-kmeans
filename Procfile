@@ -1,1 +1,1 @@
-web: gunicorn fraud_detection.wsgi
+web: gunicorn fraud_detection.wsgi:application --config gunicorn.conf.py
