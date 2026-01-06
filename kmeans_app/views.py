@@ -12,15 +12,27 @@ def index(request):
     return render(request, 'kmeans_app/index.html')
 
 def dataset_info(request):
-    """Información del dataset"""
+    """Información del dataset - Corregido"""
     global simulated_df
     
     if simulated_df is None:
         simulator = FraudDataSimulator()
-        # REDUCIDO para Render
         simulated_df = simulator.generate_simulated_data(n_samples=2000)
     
     info = FraudDataSimulator.get_dataset_info(simulated_df)
+    
+    # Preparar datos para la tabla
+    table_data = []
+    if 'describe' in info and info['describe']:
+        for column, stats in info['describe'].items():
+            table_data.append({
+                'column': column,
+                'count': stats.get('count', 0),
+                'mean': stats.get('mean', 0),
+                'std': stats.get('std', 0),
+                'min': stats.get('min', 0),
+                'max': stats.get('max', 0),
+            })
     
     context = {
         'dataset_info': info,
@@ -29,6 +41,8 @@ def dataset_info(request):
         'num_normal': info['num_normal'],
         'num_fraud': info['num_fraud'],
         'fraud_percentage': round(info['fraud_percentage'], 3),
+        'table_data': table_data,
+        'columns': info.get('columns', []),
     }
     
     return render(request, 'kmeans_app/dataset_info.html', context)

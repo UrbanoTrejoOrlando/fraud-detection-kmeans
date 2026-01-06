@@ -68,7 +68,7 @@ class FraudDataSimulator:
     
     @staticmethod
     def get_dataset_info(df):
-        """Obtiene información estadística del dataset"""
+        """Obtiene información estadística del dataset - Corregido"""
         info = {
             'num_features': len(df.columns) - 1,  # Excluyendo Class
             'num_samples': len(df),
@@ -78,6 +78,25 @@ class FraudDataSimulator:
             'columns': list(df.columns),
             'missing_values': df.isnull().sum().to_dict(),
         }
+        
+        # Obtener estadísticas descriptivas de forma serializable
+        describe_df = df.describe()
+        
+        # Convertir a diccionario serializable
+        stats_dict = {}
+        for column in describe_df.columns:
+            stats_dict[column] = {
+                'count': float(describe_df[column]['count']),
+                'mean': float(describe_df[column]['mean']),
+                'std': float(describe_df[column]['std']),
+                'min': float(describe_df[column]['min']),
+                '25%': float(describe_df[column]['25%']),
+                '50%': float(describe_df[column]['50%']),
+                '75%': float(describe_df[column]['75%']),
+                'max': float(describe_df[column]['max'])
+            }
+        
+        info['describe'] = stats_dict
         return info
 
 class KMeansAnalyzer:

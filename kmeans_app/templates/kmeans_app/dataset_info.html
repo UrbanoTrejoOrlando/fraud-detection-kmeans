@@ -72,38 +72,59 @@
                     </div>
                 </div>
                 
-                <!-- Estadísticas Detalladas -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estadísticas Descriptivas</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Característica</th>
-                                        <th>Media</th>
-                                        <th>Desviación Estándar</th>
-                                        <th>Mínimo</th>
-                                        <th>Máximo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for col, stats in dataset_info.describe.items %}
-                                    <tr>
-                                        <td><strong>{{ col }}</strong></td>
-                                        <td>{{ stats.mean|floatformat:4 }}</td>
-                                        <td>{{ stats.std|floatformat:4 }}</td>
-                                        <td>{{ stats.min|floatformat:4 }}</td>
-                                        <td>{{ stats.max|floatformat:4 }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <!-- Reemplazar la sección de la tabla en dataset_info.html -->
+
+<!-- Estadísticas Detalladas -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estadísticas Descriptivas</h5>
+    </div>
+    <div class="card-body">
+        {% if table_data %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Característica</th>
+                        <th>Count</th>
+                        <th>Mean</th>
+                        <th>Std</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in table_data|slice:":10" %}
+                    <tr>
+                        <td><strong>{{ item.column }}</strong></td>
+                        <td>{{ item.count|floatformat:0 }}</td>
+                        <td>{{ item.mean|floatformat:4 }}</td>
+                        <td>{{ item.std|floatformat:4 }}</td>
+                        <td>{{ item.min|floatformat:4 }}</td>
+                        <td>{{ item.max|floatformat:4 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Nota sobre limitación -->
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i> 
+            Mostrando las primeras 10 características. 
+            {% if table_data|length > 10 %}
+            Hay {{ table_data|length }} características en total.
+            {% endif %}
+        </div>
+        
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> 
+            No hay datos estadísticos disponibles en este momento.
+        </div>
+        {% endif %}
+    </div>
+</div>
             </div>
         </div>
     </div>
