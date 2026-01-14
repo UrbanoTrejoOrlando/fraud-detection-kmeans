@@ -7,4 +7,5 @@ urlpatterns = [
     path('visualizations/', views.visualizations, name='visualizations'),
     path('kmeans-analysis/', views.kmeans_analysis, name='kmeans_analysis'),
     path('generate-data/', views.generate_simulated_data, name='generate_data'),
+    path('api/modelo2/dataset-info/', views.dataset_info_api, name='dataset_info_api'),
 ]
