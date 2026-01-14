@@ -247,3 +247,47 @@ def dataset_info_api(request):
         "fraud_percentage": round(info["fraud_percentage"], 3),
         "columns": info.get("columns", [])
     })
+
+
+from django.http import JsonResponse
+
+def kmeans_api(request):
+    global simulated_df
+
+    if simulated_df is None:
+        simulator = FraudDataSimulator()
+        simulated_df = simulator.generate_simulated_data(n_samples=2000)
+
+    try:
+        n_clusters = int(request.GET.get('n_clusters', 2))
+        n_clusters = max(2, min(n_clusters, 5))
+
+        analyzer = KMeansAnalyzer(n_clusters=n_clusters)
+        X_scaled, y_true = analyzer.prepare_data(simulated_df)
+        X_pca = analyzer.apply_pca(X_scaled)
+
+        cluster_labels, centroids = analyzer.fit_kmeans(X_pca)
+        evaluation = analyzer.evaluate_clusters(X_pca, cluster_labels)
+
+        cluster_plot = analyzer.plot_clusters(X_pca, cluster_labels, centroids)
+
+        cluster_stats = {}
+        for i in range(n_clusters):
+            size = int((cluster_labels == i).sum())
+            cluster_stats[f"Cluster {i}"] = size
+
+        return JsonResponse({
+            "success": True,
+            "n_clusters": n_clusters,
+            "silhouette": round(evaluation["silhouette_score"], 3),
+            "purity": round(evaluation["purity"] * 100, 2),
+            "inertia": round(evaluation["inertia"], 2),
+            "cluster_stats": cluster_stats,
+            "cluster_plot": cluster_plot,  # 👈 base64 PNG
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        })
