@@ -226,3 +226,24 @@ def generate_simulated_data(request):
             'status': 'error',
             'message': str(e)
         })
+
+from django.http import JsonResponse
+
+def dataset_info_api(request):
+    global simulated_df
+
+    if simulated_df is None:
+        simulator = FraudDataSimulator()
+        simulated_df = simulator.generate_simulated_data(n_samples=2000)
+
+    info = FraudDataSimulator.get_dataset_info(simulated_df)
+
+    return JsonResponse({
+        "success": True,
+        "num_samples": info["num_samples"],
+        "num_features": info["num_features"],
+        "num_normal": info["num_normal"],
+        "num_fraud": info["num_fraud"],
+        "fraud_percentage": round(info["fraud_percentage"], 3),
+        "columns": info.get("columns", [])
+    })
