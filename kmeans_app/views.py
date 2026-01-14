@@ -6,6 +6,7 @@ from .ml_utils import FraudDataSimulator, KMeansAnalyzer
 
 # Variable global para almacenar los datos generados
 simulated_df = None
+last_k = None
 
 def index(request):
     """Página principal"""
@@ -86,33 +87,34 @@ def visualizations(request):
     return render(request, 'kmeans_app/visualizations.html', context)
 
 def kmeans_analysis(request):
-    """Análisis con KMeans - Optimizado para Render"""
+    """Análisis con KMeans - Dataset cacheado e invalidado por cambio de k"""
     global simulated_df
-    
-    if simulated_df is None:
-        # Redirigir o generar datos automáticamente
-        simulator = FraudDataSimulator()
-        simulated_df = simulator.generate_simulated_data(n_samples=2000)
-    
-    # Obtener parámetros del formulario con valores por defecto
+    global last_k
+
+    # Obtener parámetros
     try:
         n_clusters = int(request.GET.get('n_clusters', 2))
     except ValueError:
         n_clusters = 2
-    
+
     try:
-        max_clusters = int(request.GET.get('max_clusters', 6))  # Reducido
+        max_clusters = int(request.GET.get('max_clusters', 6))
     except ValueError:
         max_clusters = 6
-    
-    # Limitar valores para Render
-    n_clusters = max(2, min(n_clusters, 5))  # Máximo 5 clusters
-    max_clusters = max(3, min(max_clusters, 8))  # Máximo 8 para método del codo
-    
-    # Asegurar que max_clusters sea mayor que n_clusters
+
+    # Límites seguros para Render
+    n_clusters = max(2, min(n_clusters, 5))
+    max_clusters = max(3, min(max_clusters, 8))
+
     if max_clusters <= n_clusters:
         max_clusters = n_clusters + 1
-    
+
+    # 🟢 INVALIDAR DATASET SOLO SI CAMBIA k
+    if simulated_df is None or 'last_k' not in globals() or last_k != n_clusters:
+        simulator = FraudDataSimulator()
+        simulated_df = simulator.generate_simulated_data(n_samples=2000)
+        last_k = n_clusters
+
     context = {
         'n_clusters': n_clusters,
         'max_clusters': max_clusters,
@@ -121,61 +123,53 @@ def kmeans_analysis(request):
         'inertia': 0.0,
         'cluster_stats': {},
         'inertias': [],
+        'success': False
     }
-    
+
     try:
-        # Configurar timeout para Render
         start_time = time.time()
-        
-        # Realizar análisis KMeans
+
         analyzer = KMeansAnalyzer(n_clusters=n_clusters)
-        
+
         # Preparar datos
         X_scaled, y_true = analyzer.prepare_data(simulated_df)
-        
-        # Verificar timeout
-        if time.time() - start_time > 10:  # 10 segundos límite
+        if time.time() - start_time > 10:
             raise TimeoutError("Timeout preparando datos")
-        
-        # Aplicar PCA
+
+        # PCA
         X_pca = analyzer.apply_pca(X_scaled)
-        
-        # Verificar timeout
-        if time.time() - start_time > 15:  # 15 segundos límite
+        if time.time() - start_time > 15:
             raise TimeoutError("Timeout aplicando PCA")
-        
-        # Aplicar KMeans
+
+        # KMeans
         cluster_labels, centroids = analyzer.fit_kmeans(X_pca)
-        
-        # Verificar timeout
-        if time.time() - start_time > 20:  # 20 segundos límite total
+        if time.time() - start_time > 20:
             raise TimeoutError("Timeout ejecutando KMeans")
-        
-        # Evaluar clusters
+
+        # Evaluación
         evaluation = analyzer.evaluate_clusters(X_pca, cluster_labels)
-        
-        # Generar gráficos (solo si no hay timeout)
+
+        # Gráficas
         try:
             cluster_plot = analyzer.plot_clusters(X_pca, cluster_labels, centroids)
             elbow_plot, inertias = analyzer.plot_elbow_method(X_pca, max_clusters)
-            
+
             context['cluster_plot'] = cluster_plot
             context['elbow_plot'] = elbow_plot
             context['inertias'] = [round(i, 2) for i in inertias]
         except:
-            # Si fallan los gráficos, continuar sin ellos
             pass
-        
+
         # Estadísticas de clusters
         cluster_stats = {}
+        total = len(cluster_labels)
         for i in range(n_clusters):
-            cluster_mask = (cluster_labels == i)
+            size = int((cluster_labels == i).sum())
             cluster_stats[f'Cluster {i}'] = {
-                'size': int(cluster_mask.sum()),
-                'percentage': round((cluster_mask.sum() / len(cluster_labels)) * 100, 2)
+                'size': size,
+                'percentage': round((size / total) * 100, 2)
             }
-        
-        # Actualizar contexto con resultados
+
         context.update({
             'silhouette_score': round(evaluation['silhouette_score'], 3),
             'purity': round(evaluation['purity'] * 100, 2),
@@ -183,17 +177,16 @@ def kmeans_analysis(request):
             'cluster_stats': cluster_stats,
             'success': True,
         })
-        
-    except TimeoutError as e:
-        context['error'] = "El análisis tardó demasiado. Reduciendo complejidad..."
-        context['success'] = False
-        
+
+    except TimeoutError:
+        context['error'] = "El análisis tardó demasiado. Intenta con menos clusters."
+
     except Exception as e:
         context['error'] = f"Error en el análisis: {str(e)}"
-        context['success'] = False
-        print(f"Error en KMeans: {str(e)}")
-    
+        print(f"[KMEANS ERROR] {e}")
+
     return render(request, 'kmeans_app/kmeans_result.html', context)
+
 
 def generate_simulated_data(request):
     """Genera nuevos datos simulados - Optimizado"""
