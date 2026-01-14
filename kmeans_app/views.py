@@ -87,43 +87,38 @@ def visualizations(request):
     return render(request, 'kmeans_app/visualizations.html', context)
 
 def kmeans_analysis(request):
-    """Análisis con KMeans - Dataset cacheado e invalidado por cambio de k"""
+    """Análisis con KMeans - Cache seguro por parámetros"""
     global simulated_df
-    global last_k
 
-    # Obtener parámetros
+    # 🔹 Leer parámetros desde la URL (API / n8n / Frontend)
     try:
         n_clusters = int(request.GET.get('n_clusters', 2))
     except ValueError:
         n_clusters = 2
 
     try:
-        max_clusters = int(request.GET.get('max_clusters', 6))
+        max_clusters = int(request.GET.get('max_clusters', n_clusters + 1))
     except ValueError:
-        max_clusters = 6
-
-    # Límites seguros para Render
-    n_clusters = max(2, min(n_clusters, 5))
-    max_clusters = max(3, min(max_clusters, 8))
-
-    if max_clusters <= n_clusters:
         max_clusters = n_clusters + 1
 
-    # 🟢 INVALIDAR DATASET SOLO SI CAMBIA k
-    if simulated_df is None or 'last_k' not in globals() or last_k != n_clusters:
+    # 🔹 Límites seguros para Render
+    n_clusters = max(2, min(n_clusters, 5))
+    max_clusters = max(n_clusters + 1, min(max_clusters, 8))
+
+    # 🔹 Dataset: se genera UNA VEZ (no depende de k)
+    if simulated_df is None:
         simulator = FraudDataSimulator()
         simulated_df = simulator.generate_simulated_data(n_samples=2000)
-        last_k = n_clusters
 
     context = {
+        'success': False,
         'n_clusters': n_clusters,
         'max_clusters': max_clusters,
         'silhouette_score': 0.0,
         'purity': 0.0,
         'inertia': 0.0,
         'cluster_stats': {},
-        'inertias': [],
-        'success': False
+        'inertias': []
     }
 
     try:
@@ -131,25 +126,25 @@ def kmeans_analysis(request):
 
         analyzer = KMeansAnalyzer(n_clusters=n_clusters)
 
-        # Preparar datos
+        # 🔹 Preparar datos
         X_scaled, y_true = analyzer.prepare_data(simulated_df)
         if time.time() - start_time > 10:
             raise TimeoutError("Timeout preparando datos")
 
-        # PCA
+        # 🔹 PCA
         X_pca = analyzer.apply_pca(X_scaled)
         if time.time() - start_time > 15:
             raise TimeoutError("Timeout aplicando PCA")
 
-        # KMeans
+        # 🔹 KMeans (SIEMPRE se recalcula)
         cluster_labels, centroids = analyzer.fit_kmeans(X_pca)
         if time.time() - start_time > 20:
             raise TimeoutError("Timeout ejecutando KMeans")
 
-        # Evaluación
+        # 🔹 Evaluación
         evaluation = analyzer.evaluate_clusters(X_pca, cluster_labels)
 
-        # Gráficas
+        # 🔹 Gráficas
         try:
             cluster_plot = analyzer.plot_clusters(X_pca, cluster_labels, centroids)
             elbow_plot, inertias = analyzer.plot_elbow_method(X_pca, max_clusters)
@@ -157,12 +152,12 @@ def kmeans_analysis(request):
             context['cluster_plot'] = cluster_plot
             context['elbow_plot'] = elbow_plot
             context['inertias'] = [round(i, 2) for i in inertias]
-        except:
-            pass
+        except Exception as e:
+            print(f"[PLOT WARNING] {e}")
 
-        # Estadísticas de clusters
-        cluster_stats = {}
+        # 🔹 Estadísticas de clusters
         total = len(cluster_labels)
+        cluster_stats = {}
         for i in range(n_clusters):
             size = int((cluster_labels == i).sum())
             cluster_stats[f'Cluster {i}'] = {
@@ -175,17 +170,18 @@ def kmeans_analysis(request):
             'purity': round(evaluation['purity'] * 100, 2),
             'inertia': round(evaluation['inertia'], 2),
             'cluster_stats': cluster_stats,
-            'success': True,
+            'success': True
         })
 
-    except TimeoutError:
-        context['error'] = "El análisis tardó demasiado. Intenta con menos clusters."
+    except TimeoutError as e:
+        context['error'] = str(e)
 
     except Exception as e:
         context['error'] = f"Error en el análisis: {str(e)}"
         print(f"[KMEANS ERROR] {e}")
 
-    return render(request, 'kmeans_app/kmeans_result.html', context)
+    # 🔴 Importante: respuesta API (no HTML)
+    return JsonResponse(context)
 
 
 def generate_simulated_data(request):
