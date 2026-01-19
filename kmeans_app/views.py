@@ -109,7 +109,7 @@ def kmeans_analysis(request):
         max_clusters = 6
 
     # Límites seguros
-    n_clusters = max(2, min(n_clusters, 5))
+    n_clusters = max(2, min(n_clusters, 9))
     max_clusters = max(3, min(max_clusters, 8))
 
     if max_clusters <= n_clusters:
